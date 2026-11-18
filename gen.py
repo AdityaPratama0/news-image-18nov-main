@@ -5,8 +5,13 @@ sys.path.append('/usr/lib/python3/dist-packages')
 from PIL import ImageFont
 SANS='/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'; BOLD='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'; SERIF='/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf'
 PAPER,INK,RED,GREY,WHITE='#f7f3e8','#161616','#8f1d1d','#7d7668','#ffffff'
-C={'Europe':'#2f5d8a','Middle East':'#8a3a2f','Asia':'#b07a1e','Americas':'#4a6b3a','Africa':'#7a4a6b','Oceania':'#2f6b6b','Global':'#4a4a55'}
+C={'Europe':'#2456a8','Middle East':'#b3352b','Asia':'#c98a12','Americas':'#2f7d4f','Africa':'#7a3f8a','Oceania':'#12807d','Global':'#3f4a5a'}
+def mix(a,b,amount):
+ av=tuple(int(a[i:i+2],16) for i in (1,3,5));bv=tuple(int(b[i:i+2],16) for i in (1,3,5))
+ return '#'+''.join(f'{round(x*amount+y*(1-amount)):02x}' for x,y in zip(av,bv))
+TINT={region:mix(colour,PAPER,.14) for region,colour in C.items()}
 CARDS=[('Middle East','IRAN WAR','Kuwait, Bahrain intercept Iranian drones'),('Asia','APEC SHENZHEN','Xi greets Trump as APEC opens'),('Americas','US POLITICS','Democrats pick Jeffries as speaker'),('Europe','UKRAINE WAR','Russia fires 141 drones at Ukraine'),('Middle East','GAZA','Board of Peace: Gaza truce may collapse'),('Asia','DISASTER','Cyclone Akvan nears Andhra Pradesh'),('Global','CLIMATE','COP31: 75 countries back 35x35 goal'),('Asia','LABOUR','Bangladesh protests shut 55 factories'),('Africa','SUDAN WAR','RSF drone strikes killed 37 in El Obeid'),('Global','CULTURE','GTA VI goes on sale after 13 years'),('Europe','ECONOMY','UK inflation rises to 3.6%'),('Global','SPACE','Voyager 1 is one light-day from Earth'),('Europe','UKRAINE AID','EU proposes 45bn euro loan for Ukraine')]
+STANDFIRSTS=['Iran aimed at US forces; a tanker hit in Hormuz','Trump-Xi-Putin summit set for Thursday; Xi urged free trade','Caucus vote 251-11; first new Democratic speaker in a decade','126 downed; 5 killed, 15 injured','UN report: Israel blocked relief','Landfall Friday; 204,070 to evacuate','Electricity 35% of energy by 2035','Tk 30,000 sought; highway blocked','War-crimes inquiry urged; RSF denies','Midnight launch; 15m pre-orders','October CPI up from 3.5%, ONS says','25.9bn km out, 49 years after launch','For 2027, as US support wavers']
 BRIEFS=[('Middle East','Tehran','Iran says it downed a US MQ-9 near Hormuz'),('Middle East','Riyadh','the coalition downs a Houthi cruise missile'),('Middle East','Jerusalem','the Knesset approves nine deputy speakers'),('Asia','Manila','Trump hails a trade deal; Manila is vaguer'),('Asia','Seoul',"Lee seeks China's help for peace on the peninsula"),('Asia','Tokyo','Japan posts a sixth straight monthly trade deficit'),('Asia','Lahore',"the world's most polluted big city again, AQI 339"),('Asia','Kuala Lumpur','the ringgit hits a five-month low'),('Asia','Shenzhen','Xi and Lee conclude FTA services talks'),('Asia','Bangkok','a Chinese director is jailed over a collapsed tower'),('Asia','Singapore',"Aiko's first imperial visit in 20 years"),('Asia','Seoul','a court acquits the Daegu mayor in a martial-law case'),('Americas','Monterrey','Mexico edge Jamaica to set up a semi against the USA'),('Americas','Los Angeles','the Lakers win a ninth straight game'),('Oceania','Auckland','the tsunami advisory is lifted after a 60 cm surge'),('Europe','Berlin','the coalition will cut the power tax and cap fuel prices'),('Europe','Germany','Berlin accuses Russia of chemical breaches'),('Europe','Cambridge','human is named word of the year'),('Europe','Sofia','a sunk LPG tanker was hit by projectiles'),('Europe','The Hague','the ICJ sets its Rohingya ruling for Thursday'),('Americas','Washington','Fed minutes: more hikes; gold under $3,800'),('Americas','New York','the Dow falls 0.8%; Nvidia shares fall 2.4%'),('Americas','San Francisco','Anthropic to price its IPO; trading Thursday'),('Americas','California','Waymo halts freeway rides after a state ban'),('Americas','Washington','the NSA confirms a classified-network outage'),('Americas','Ottawa','Carney says China trade is no worry for Trump'),('Americas','Lima','Peru declares a fuel-supply emergency over El Nino'),('Africa','Kinshasa','the WHO keeps DR Congo Ebola a global emergency'),('Africa','Addis Ababa','Ethiopia and Eritrea mass troops on the border'),('Africa','Johannesburg',"South Africa's inflation rises to 5.2 percent"),('Africa','Cape Town','SA Rugby seeks a full hearing on the Erasmus ban'),('Oceania','Sydney','Tame Impala sweeps the ARIA Awards')]
 LEDGER=[]
 def measure(s,p,z): return ImageFont.truetype(p,round(z*64)).getlength(str(s))/64
@@ -25,9 +30,9 @@ def wrap(text,font_path,size,max_width):
   else:q=t
  if q:out.append(q)
  return out
-def scene(n,x,y,w,h,c):
+def scene(n,x,y,w,h,c,tint):
  X=lambda q:x+w*q/100;Y=lambda q:y+h*q/100
- z=R(x,y,w,h,PAPER)
+ z=R(x,y,w,h,tint)
  # Each icon is a story-specific, fill-only pictogram; only routes may be stroked.
  if n in (1,4,9):
   z+=P(f'{X(12)},{Y(18)} {X(25)},{Y(25)} {X(12)},{Y(32)}',INK)+P(f'{X(64)},{Y(22)} {X(77)},{Y(29)} {X(64)},{Y(36)}',INK)
@@ -38,7 +43,7 @@ def scene(n,x,y,w,h,c):
   z+=f'<path d="M{X(20)} {Y(31)} Q{X(43)} {Y(52)} {X(65)} {Y(37)}" fill="none" stroke="{c}" stroke-width="2.5" stroke-dasharray="5 5"/>'
  elif n==2:
   z+=R(X(5),Y(12),w*.18,h*.34,RED)+P(f'{X(14)},{Y(17)} {X(16)},{Y(23)} {X(22)},{Y(23)} {X(17)},{Y(27)} {X(19)},{Y(34)} {X(14)},{Y(30)} {X(9)},{Y(34)} {X(11)},{Y(27)} {X(6)},{Y(23)} {X(12)},{Y(23)}',c)
-  z+=R(X(77),Y(12),w*.18,h*.34,'#2f5d8a')+R(X(82),Y(17),w*.09,h*.035,WHITE)+R(X(82),Y(25),w*.09,h*.035,WHITE)+R(X(82),Y(33),w*.09,h*.035,WHITE)
+  z+=R(X(77),Y(12),w*.18,h*.34,C['Europe'])+R(X(82),Y(17),w*.09,h*.035,WHITE)+R(X(82),Y(25),w*.09,h*.035,WHITE)+R(X(82),Y(33),w*.09,h*.035,WHITE)
   z+=O(X(31),Y(34),h*.11,INK)+O(X(69),Y(34),h*.11,INK)+P(f'{X(20)},{Y(72)} {X(25)},{Y(47)} {X(37)},{Y(47)} {X(44)},{Y(72)}',INK)+P(f'{X(56)},{Y(72)} {X(63)},{Y(47)} {X(75)},{Y(47)} {X(80)},{Y(72)}',INK)
   z+=f'<path d="M{X(35)} {Y(51)}L{X(49)} {Y(61)}M{X(65)} {Y(51)}L{X(51)} {Y(61)}" stroke="{c}" stroke-width="8" stroke-linecap="round"/>'+O(X(50),Y(61),h*.055,INK)+R(X(37),Y(67),w*.26,h*.13,c)
  elif n==3:
@@ -57,8 +62,8 @@ def scene(n,x,y,w,h,c):
  elif n==12:
   z+=R(X(21),Y(35),w*.19,h*.22,c)+f'<path d="M{X(21)} {Y(42)}Q{X(4)} {Y(15)} {X(10)} {Y(51)}Q{X(16)} {Y(52)} {X(21)} {Y(42)}" fill="{INK}"/>'+R(X(39),Y(43),w*.29,h*.035,INK)+R(X(27),Y(55),w*.025,h*.23,INK)
   z+=''.join(O(X(q),Y(r),h*.025,INK) for q,r in ((8,70),(16,22),(35,16),(48,28),(60,13),(71,31)))
-  z+=f'<path d="M{X(42)} {Y(66)}H{X(88)}" fill="none" stroke="{c}" stroke-width="2.5" stroke-dasharray="3 4"/><path d="M{X(55)} {Y(61)}V{Y(71)}M{X(66)} {Y(61)}V{Y(71)}M{X(77)} {Y(61)}V{Y(71)}" stroke="{INK}" stroke-width="2"/>'+O(X(93),Y(66),h*.1,'#2f5d8a')+P(f'{X(88)},{Y(64)} {X(92)},{Y(61)} {X(96)},{Y(64)} {X(94)},{Y(69)} {X(90)},{Y(69)}',WHITE)
- else:z+=O(X(20),Y(43),h*.29,c)+''.join(O(X(20+17*math.cos(k*math.pi/6)),Y(43)+17*math.sin(k*math.pi/6),1.5,WHITE) for k in range(12))+R(X(64),Y(14),w*.27,h*.44,'#2f5d8a')+R(X(64),Y(36),w*.27,h*.22,'#b07a1e')+P(f'{X(43)},{Y(69)} {X(58)},{Y(55)} {X(70)},{Y(62)} {X(83)},{Y(50)} {X(95)},{Y(57)} {X(83)},{Y(65)} {X(70)},{Y(70)} {X(57)},{Y(63)}',INK)
+  z+=f'<path d="M{X(42)} {Y(66)}H{X(88)}" fill="none" stroke="{c}" stroke-width="2.5" stroke-dasharray="3 4"/><path d="M{X(55)} {Y(61)}V{Y(71)}M{X(66)} {Y(61)}V{Y(71)}M{X(77)} {Y(61)}V{Y(71)}" stroke="{INK}" stroke-width="2"/>'+O(X(93),Y(66),h*.1,C['Europe'])+P(f'{X(88)},{Y(64)} {X(92)},{Y(61)} {X(96)},{Y(64)} {X(94)},{Y(69)} {X(90)},{Y(69)}',WHITE)
+ else:z+=O(X(20),Y(43),h*.29,c)+''.join(O(X(20+17*math.cos(k*math.pi/6)),Y(43)+17*math.sin(k*math.pi/6),1.5,WHITE) for k in range(12))+R(X(64),Y(14),w*.27,h*.44,C['Europe'])+R(X(64),Y(36),w*.27,h*.22,C['Asia'])+P(f'{X(43)},{Y(69)} {X(58)},{Y(55)} {X(70)},{Y(62)} {X(83)},{Y(50)} {X(95)},{Y(57)} {X(83)},{Y(65)} {X(70)},{Y(70)} {X(57)},{Y(63)}',INK)
  return z
 def dotmap():
  try:rows=open('/tmp/mask.txt').read().splitlines()
@@ -100,16 +105,19 @@ def svg():
   fw=measure(figure,BOLD,9.6);lw=measure(label,SANS,9.6)
   o += [T(figure,tx,160,9.6,BOLD,RED,box=fw+.1),T(label,tx+fw+4,160,9.6,SANS,INK,box=lw+.1)]
   tx+=fw+4+lw
-  if i<len(ticker)-1:o.append(f'<path d="M{tx+gap/2} 151V163" stroke="{GREY}" stroke-width=".6"/>');tx+=gap
- pos=[(32+i*315,180,306,92) for i in range(3)]+[(32+i*189,340,180,86) for i in range(5)]+[(32+i*189,500,180,86) for i in range(5)]
- for n,((reg,kick,head),(x,y,w,ih)) in enumerate(zip(CARDS,pos),1):
-  o += [f'<rect x="{x}" y="{y}" width="{w}" height="150" fill="none" stroke="{GREY}" stroke-width=".8"/>',scene(n,x,y,w,ih,C[reg]),R(x,y+ih,w,14,C[reg]),T(kick,x+5,y+ih+10.5,8.5,BOLD,WHITE,box=w-10)]
+  if i<len(ticker)-1:o.append(f'<path d="M{tx+gap/2} 151V163" stroke="{GREY}" stroke-width=".6"/>')
+ pos=[(32+i*315,180,306,68) for i in range(3)]+[(32+i*189,340,180,62) for i in range(5)]+[(32+i*189,500,180,62) for i in range(5)]
+ for n,((reg,kick,head),(x,y,w,ih),standfirst) in enumerate(zip(CARDS,pos,STANDFIRSTS),1):
+  o += [f'<rect x="{x}" y="{y}" width="{w}" height="150" fill="none" stroke="{GREY}" stroke-width=".8"/>',scene(n,x,y,w,ih,WHITE,TINT[reg]),R(x,y+ih,w,14,C[reg]),T(kick,x+5,y+ih+10.5,8.5,BOLD,WHITE,box=w-10)]
   hs=19 if n<4 else 13.5
   lines=wrap(head,SERIF,hs,w-16)
   while len(lines)>2 and hs>11:
    hs-=.5;lines=wrap(head,SERIF,hs,w-16)
   assert len(lines)<=2
   for j,line in enumerate(lines):o.append(T(line,x+8,y+ih+14+hs+j*hs*1.15,hs,SERIF,INK,box=w-16))
+  stand_lines=wrap(standfirst,SANS,8.4,w-16)
+  assert len(stand_lines)==1
+  o.append(T(stand_lines[0],x+8,y+142,8.4,SANS,'#3a3a3a',box=w-16))
   o += [R(x,y,16,16,RED),T(n,x+8,y+11.5,9.5,BOLD,WHITE,'middle',16)]
  o += [T('WHERE IT HAPPENED',40,656,8.5,BOLD,INK,box=300),dotmap(),R(356,660,628,100,WHITE),R(356,660,3,100,RED)]
  date="DATE CHECK  Left out because first reported before 18 November: Nvidia's $115.8bn quarter, the Prague train crash, Mongolia's president resigning. Every story here happened or was first reported on Wednesday 18 November 2026; contested claims are attributed."
