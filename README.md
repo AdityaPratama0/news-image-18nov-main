@@ -4,7 +4,7 @@
 
 A program-drawn broadsheet front page covering 45 Wednesday stories across seven regions. Its story budget is 13 large illustrated news cards, each with a distinct flat-vector scene, plus 32 ruled briefs. Proportional region tabs, a pinned dot map, numeric ticker, date-check panel, and source line provide the front-page navigation and verification layer.
 
-The artwork is deterministic SVG geometry and measured typography generated with the Python standard library, then rasterised by `rsvg-convert`. The only input asset is the supplied `/tmp/mask.txt` land mask.
+The artwork is deterministic SVG geometry with flat, story-specific scenes. Pillow measures every visible string with the specified DejaVu font before SVG rasterisation. Headlines alone may wrap to two lines; all other copy stays on one measured, fitted line. The generator asserts its complete width ledger before `rsvg-convert` runs. The only input asset is the supplied `/tmp/mask.txt` land mask.
 
 ## Regenerate
 
