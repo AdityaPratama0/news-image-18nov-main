@@ -4,7 +4,7 @@ from collections import Counter
 sys.path.append('/usr/lib/python3/dist-packages')
 from PIL import ImageFont
 SANS='/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'; BOLD='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'; SERIF='/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf'
-PAPER,INK,RED,GREY,WHITE='#f7f3e8','#161616','#8f1d1d','#7d7668','#ffffff'
+PAPER,INK,RED,GREY,WHITE='#f4efe2','#161616','#7a1f1f','#7d7668','#ffffff'
 C={'Europe':'#2456a8','Middle East':'#b3352b','Asia':'#c98a12','Americas':'#2f7d4f','Africa':'#7a3f8a','Oceania':'#12807d','Global':'#3f4a5a'}
 def mix(a,b,amount):
  av=tuple(int(a[i:i+2],16) for i in (1,3,5));bv=tuple(int(b[i:i+2],16) for i in (1,3,5))
@@ -138,10 +138,18 @@ def svg():
  field_strip=f'<text x="984" y="780" font-family="DejaVu Sans" font-size="8" fill="#3a3a3a" text-anchor="end">BY FIELD  {"".join(spans)}</text>'
  o += [T('ALSO ON WEDNESDAY 18 NOVEMBER',40,780,10.5,BOLD,RED,box=500,extra='letter-spacing="1"'),field_strip,f'<path d="M40 788H984" stroke="{INK}" stroke-width=".8"/>']
  for num,(reg,place,desc) in enumerate(BRIEFS,14):
-  k=num-14;col=k//11;row=k%11;x=40+col*323;y=804+row*15.4;nw=measure(str(num)+' ',BOLD,8);pw=measure(place+' ',BOLD,8);dw=measure(desc,SANS,8)
+  k=num-14;col=k//11;row=k%11;x=40+col*323;y=804+row*13.2;nw=measure(str(num)+' ',BOLD,8);pw=measure(place+' ',BOLD,8);dw=measure(desc,SANS,8)
   if nw+pw+dw>297:
    print(f'brief {num} too wide: {nw+pw+dw:.2f}px: {place} {desc}',file=sys.stderr);raise SystemExit(1)
   o += [T(str(num)+' ',x,y,8,BOLD,RED,box=nw+.1),T(place+' ',x+nw,y,8,BOLD,INK,box=pw+.1),T(desc,x+nw+pw,y,8,SANS,INK,box=dw+.1),f'<path d="M{x} {y+4}H{x+297}" stroke="{GREY}" stroke-opacity=".15" stroke-width=".7"/>']
+ note=['NOTE TO THE EDITOR','This page carries 45 stories from 18 November 2026 across seven regions, 13 of them drawn as scenes.','Every story happened or was first reported that Wednesday; figures are attributed to the wire services named below.']
+ notch=8.6;pad=3;nlead=10.4
+ note_w=max(measure(line,BOLD if i<2 else SANS,notch) for i,line in enumerate(note))
+ note_x=(40+984-note_w-2*pad)/2;note_top=954-2*pad-3*nlead-(nlead-8.6);note_h=964-note_top-6
+ assert 40<=note_x and note_x+note_w+2*pad<=984
+ o += [f'<rect x="{note_x}" y="{note_top}" width="{note_w+2*pad}" height="{note_h}" fill="none" stroke="{RED}" stroke-width="1"/>']
+ for i,line in enumerate(note):
+  o.append(T(line,note_x+pad,note_top+pad+(nlead-8.6)+i*nlead,notch,BOLD if i<2 else SANS,INK,box=note_w))
  o += [f'<path d="M40 964H984" stroke="{INK}" stroke-width=".8"/>',T('Every story happened or was first reported on 18 November 2026. Sources: Reuters, AP, AFP, BBC, Al Jazeera. Original flat-vector illustrations.',40,982,8.4,SANS,INK,box=790),T('18 NOVEMBER 2026',984,982,8.4,BOLD,INK,'end',150),'</svg>']
  worst=max((w/b for _,w,b in LEDGER),default=0); item=max(LEDGER,key=lambda q:q[1]/q[2]);print(f'worst ratio: {worst:.4f} ({item[0]})');assert worst<=1
  result=''.join(o);assert '…' not in result and '...' not in result
