@@ -33,6 +33,9 @@ def wrap(text,font_path,size,max_width):
   else:q=t
  if q:out.append(q)
  return out
+def balanced_two_lines(text,font_path,size):
+ words=text.split();choices=[(' '.join(words[:i]),' '.join(words[i:])) for i in range(1,len(words))]
+ return min(choices,key=lambda lines:max(measure(line,font_path,size) for line in lines))
 def scene(n,x,y,w,h,c,tint):
  X=lambda q:x+w*q/100;Y=lambda q:y+h*q/100
  z=R(x,y,w,h,tint)
@@ -71,8 +74,8 @@ def scene(n,x,y,w,h,c,tint):
 def dotmap():
  try:rows=open('/tmp/mask.txt').read().splitlines()
  except OSError:rows=[]
- z=''.join(O(40+xx*2.8,710+yy*1.75,.7,GREY) for yy,row in enumerate(rows[:45]) for xx,ch in enumerate(row[:90]) if ch=='#')
- pins=[(200,727),(238,736),(91,729),(174,717),(211,730),(249,749),(145,734),(224,744),(168,759),(286,770),(152,713),(58,743),(184,721)]
+ z=''.join(O(40+xx*2.8,626+yy*1.75,.7,GREY) for yy,row in enumerate(rows[:45]) for xx,ch in enumerate(row[:90]) if ch=='#')
+ pins=[(200,643),(238,652),(91,645),(174,633),(211,646),(249,665),(145,650),(224,660),(168,675),(286,686),(152,629),(58,659),(184,637)]
  for n,(x,y) in enumerate(pins,1):z+=O(x,y,5.2,RED)+T(n,x,y+2.3,6.2,BOLD,WHITE,'middle',10.4)
  return z
 def tab_widths(order,counts):
@@ -90,42 +93,51 @@ def tab_widths(order,counts):
  widths[-1]+=944-sum(widths)
  return widths
 def svg():
- LEDGER.clear();o=[f'<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">{R(0,0,1024,1024,PAPER)}',R(40,12,944,128,NAVY),T("THE WORLD'S NEWS IN ONE PICTURE",40,40,10.5,SANS,WHITE,box=400,extra='letter-spacing="1"'),T('45 STORIES · 7 REGIONS · 13 ILLUSTRATED · ALL FROM WEDNESDAY',984,40,10.5,BOLD,WHITE,'end',560)]
- # Measured DejaVu Serif Bold at 54px: 927px wide.
- o += [f'<text x="48.5" y="100" font-family="DejaVu Serif" font-weight="700" font-size="54" fill="{WHITE}">Wednesday 18 November 2026</text>',f'<path d="M40 116H984" stroke="{WHITE}" stroke-opacity=".3" stroke-width=".8"/>',T('Every story happened, or was first reported, on Wednesday 18 November 2026',40,126,9,SERIF,WHITE,box=944,extra='font-style="italic" fill-opacity=".8"')]
+ LEDGER.clear();o=[f'<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">{R(0,0,1024,1024,PAPER)}<path d="M40 12H984M40 34H984" stroke="{INK}" stroke-width=".8"/>',T("THE WORLD'S NEWS IN ONE PICTURE",40,27,10.5,SANS,INK,box=400),T('45 STORIES · 7 REGIONS · 13 ILLUSTRATED · ALL FROM WEDNESDAY',984,27,10.5,BOLD,RED,'end',560)]
+ o += [f'<text x="48.5" y="96" font-family="DejaVu Serif" font-weight="700" font-size="54" fill="{INK}">Wednesday 18 November 2026</text>',f'<path d="M40 112H984" stroke="{INK}" stroke-width=".8"/>']
  counts=Counter(a for a,_,_ in CARDS+BRIEFS); order=sorted(C,key=lambda a:(-counts[a],list(C).index(a)));x=40
  widths=tab_widths(order,counts);print('tab widths:', ' '.join(f'{a}={w:.2f}' for a,w in zip(order,widths)))
  for a,w in zip(order,widths):
-  o += [R(x,184,w,28,C[a]),T(f'{a.upper()} {counts[a]}',x+w/2,202,10.5,BOLD,WHITE,'middle',w-14)];x+=w
+  o += [R(x,120,w,28,C[a]),T(f'{a.upper()} {counts[a]}',x+w/2,138,10.5,BOLD,WHITE,'middle',w-14)];x+=w
  ticker=[('55','factories shut'),('141','drones fired at Ukraine'),('37','killed in El Obeid'),('3.6%','UK inflation')]
  assert len(ticker)==4
  content=sum(measure(a,BOLD,9.6)+4+measure(b,SANS,9.6) for a,b in ticker)
- gap=(944-content)/(len(ticker)-1);total=content+gap*(len(ticker)-1)
- assert len(ticker)==4
- assert total<=944
- o.append(R(40,152,944,26,NAVY));tx=40
+ gap=(944-content)/(len(ticker)-1);assert content+gap*3<=944
+ tx=40
  for i,(figure,label) in enumerate(ticker):
   fw=measure(figure,BOLD,9.6);lw=measure(label,SANS,9.6)
-  o += [T(figure,tx,169,9.6,BOLD,WHITE,box=fw+.1),T(label,tx+fw+4,169,9.6,SANS,WHITE,box=lw+.1)]
+  o += [T(figure,tx,160,9.6,BOLD,RED,box=fw+.1),T(label,tx+fw+4,160,9.6,SANS,INK,box=lw+.1)]
   tx+=fw+4+lw
   if i<len(ticker)-1:
-   o.append(f'<path d="M{tx+gap/2} 157V173" stroke="{WHITE}" stroke-opacity=".4" stroke-width=".6"/>');tx+=gap
- pos=[(32+i*315,224,306,68) for i in range(3)]+[(32+i*189,383,180,62) for i in range(5)]+[(32+i*189,542,180,62) for i in range(5)]
- for n,((reg,kick,head),(x,y,w,ih),standfirst) in enumerate(zip(CARDS,pos,STANDFIRSTS),1):
-  o += [f'<rect x="{x}" y="{y}" width="{w}" height="150" fill="none" stroke="{GREY}" stroke-width=".8"/>',scene(n,x,y,w,ih,WHITE,TINT[reg]),R(x,y+ih,w,14,C[reg]),T(kick,x+5,y+ih+10.5,8.5,BOLD,WHITE,box=w-10)]
-  hs=19 if n<4 else 13.5
-  lines=wrap(head,SERIF,hs,w-16)
-  while len(lines)>2 and hs>11:
-   hs-=.5;lines=wrap(head,SERIF,hs,w-16)
+   o.append(f'<path d="M{tx+gap/2} 151V163" stroke="{GREY}" stroke-width=".6"/>');tx+=gap
+ decks=["Iran says it aimed at US forces at Ali Al Salem; an ADNOC ship was hit in Hormuz, one missing, 11 injured.",
+        'A Trump-Xi-Putin summit is set for Thursday; Xi urged AI and free-trade cooperation.',
+        'AP called it 144,302 to 131,844, a ninth Democratic gain, the most in a midterm since 1958.']
+ for n,((reg,kick,head),x,deck) in enumerate(zip(CARDS[:3],(40,359,678),decks),1):
+  y=180;o += [f'<rect x="{x}" y="{y}" width="306" height="220" fill="none" stroke="{GREY}" stroke-width=".8"/>',scene(n,x,y,306,120,WHITE,TINT[reg]),R(x,y+120,306,14,C[reg]),T(kick,x+6,y+130,9,BOLD,WHITE,box=294)]
+  lines=wrap(head,SERIF,24,290)
+  if len(lines)>2:lines=list(balanced_two_lines(head,SERIF,24))
   assert len(lines)<=2
-  for j,line in enumerate(lines):o.append(T(line,x+8,y+ih+14+hs+j*hs*1.15,hs,SERIF,INK,box=w-16))
-  stand_lines=wrap(standfirst,SANS,8.4,w-16)
-  assert len(stand_lines)==1
-  o.append(T(stand_lines[0],x+8,y+142,8.4,SANS,'#3a3a3a',box=w-16))
-  o += [R(x,y,16,16,RED),T(n,x+8,y+11.5,9.5,BOLD,WHITE,'middle',16)]
- o += [T('WHERE IT HAPPENED',40,700,8.5,BOLD,INK,box=300),dotmap(),R(356,700,628,100,WHITE),R(356,700,3,100,RED)]
+  for j,line in enumerate(lines):
+   natural=measure(line,SERIF,24)
+   if natural<=290:o.append(T(line,x+8,y+159+j*27,24,SERIF,INK,box=290))
+   else:o.append(f'<text x="{x+8}" y="{y+159+j*27}" font-family="DejaVu Serif" font-weight="700" font-size="24" fill="{INK}" textLength="290" lengthAdjust="spacingAndGlyphs">{html.escape(line)}</text>')
+  deck_y=y+203
+  deck_lines=wrap(deck,SANS,9,290);assert len(deck_lines)<=2
+  for j,line in enumerate(deck_lines):o.append(T(line,x+8,deck_y+j*11,9,SANS,'#3a3a3a',box=290))
+  o += [R(x,y,20,20,RED),T(n,x+10,y+14.5,11,BOLD,WHITE,'middle',20)]
+ for n,(reg,kick,head) in enumerate(CARDS[3:],4):
+  k=n-4;x=(40,229,418,607,796)[k%5];y=412+(k//5)*104
+  scale=44/120;sw=306*scale;dx=x+(180-sw)/2
+  art=R(x,y,180,44,TINT[reg])+f'<g transform="translate({dx} {y}) scale({scale})">{scene(n,0,0,306,120,WHITE,TINT[reg])}</g>'
+  o += [f'<rect x="{x}" y="{y}" width="180" height="96" fill="none" stroke="{GREY}" stroke-width=".8"/>',art,R(x,y+44,180,13,C[reg]),T(kick,x+5,y+53.5,8.5,BOLD,WHITE,box=170)]
+  lines=wrap(head,SERIF,13,168);assert len(lines)<=2
+  for j,line in enumerate(lines):o.append(T(line,x+6,y+73+j*15,13,SERIF,INK,box=168))
+  o += [R(x,y,15,15,RED),T(n,x+7.5,y+10.8,9,BOLD,WHITE,'middle',15)]
+ o += [T('WHERE IT HAPPENED',40,630,8.5,BOLD,INK,box=300),dotmap(),R(356,620,628,100,WHITE),R(356,620,3,100,RED)]
  date="DATE CHECK  Left out because first reported before 18 November: Nvidia's $115.8bn quarter, the Prague train crash, Mongolia's president resigning. Every story here happened or was first reported on Wednesday 18 November 2026; contested claims are attributed."
- for j,line in enumerate(wrap(date,BOLD,8.6,607)):o.append(T(line,369,721+j*16,8.6,BOLD if j==0 else SANS,INK,box=607))
+ date_lines=wrap(date,BOLD,8.6,607);assert len(date_lines)<=3
+ for j,line in enumerate(date_lines):o.append(T(line,369,645+j*15,8.6,BOLD if j==0 else SANS,INK,box=607))
  field_counts=Counter(FIELD_TAGS.values());assert sum(field_counts.values())==45
  print('field counts:', ' '.join(f'{field}={field_counts[field]}' for field in FIELDS))
  field_groups=[(field,field_counts[field]) for field in FIELDS]
@@ -136,14 +148,14 @@ def svg():
  for i,(field,count) in enumerate(field_groups):
   spans += [f'<tspan font-weight="700" fill="{RED}">{field}</tspan>',f'<tspan fill="#3a3a3a"> {count}</tspan>']
   if i<len(field_groups)-1:spans.append('<tspan fill="#3a3a3a"> · </tspan>')
- field_strip=f'<text x="984" y="816" font-family="DejaVu Sans" font-size="8" fill="#3a3a3a" text-anchor="end">BY FIELD  {"".join(spans)}</text>'
- o += [T('ALSO ON WEDNESDAY 18 NOVEMBER',40,816,10.5,BOLD,RED,box=500,extra='letter-spacing="1"'),field_strip,f'<path d="M40 820H984" stroke="{INK}" stroke-width=".8"/>']
+ field_strip=f'<text x="984" y="738" font-family="DejaVu Sans" font-size="8" fill="#3a3a3a" text-anchor="end">BY FIELD  {"".join(spans)}</text>'
+ o += [T('ALSO ON WEDNESDAY 18 NOVEMBER',40,738,10.5,BOLD,RED,box=500,extra='letter-spacing="1"'),field_strip,f'<path d="M40 746H984" stroke="{INK}" stroke-width=".8"/>']
  for num,(reg,place,desc) in enumerate(BRIEFS,14):
-  k=num-14;col=k//11;row=k%11;x=40+col*323;y=828+row*12.6;nw=measure(str(num)+' ',BOLD,8);pw=measure(place+' ',BOLD,8);dw=measure(desc,SANS,8)
+  k=num-14;col=k//11;row=k%11;x=40+col*323;y=760+row*13.6;nw=measure(str(num)+' ',BOLD,8.2);pw=measure(place+' ',BOLD,8.2);dw=measure(desc,SANS,8.2)
   if nw+pw+dw>297:
    print(f'brief {num} too wide: {nw+pw+dw:.2f}px: {place} {desc}',file=sys.stderr);raise SystemExit(1)
-  o += [T(str(num)+' ',x,y,8,BOLD,RED,box=nw+.1),T(place+' ',x+nw,y,8,BOLD,INK,box=pw+.1),T(desc,x+nw+pw,y,8,SANS,INK,box=dw+.1),f'<path d="M{x} {y+4}H{x+297}" stroke="{GREY}" stroke-opacity=".15" stroke-width=".7"/>']
- o += [f'<path d="M40 964H984" stroke="{INK}" stroke-width=".8"/>',T('Every story happened or was first reported on 18 November 2026. Sources: Reuters, AP, AFP, BBC, Al Jazeera. Original flat-vector illustrations.',40,982,8.4,SANS,INK,box=790),T('18 NOVEMBER 2026',984,982,8.4,BOLD,INK,'end',150),'</svg>']
+  o += [T(str(num)+' ',x,y,8.2,BOLD,RED,box=nw+.1),T(place+' ',x+nw,y,8.2,BOLD,INK,box=pw+.1),T(desc,x+nw+pw,y,8.2,SANS,INK,box=dw+.1),f'<path d="M{x} {y+4}H{x+297}" stroke="{GREY}" stroke-opacity=".15" stroke-width=".7"/>']
+ o += [f'<path d="M40 946H984" stroke="{INK}" stroke-width=".8"/>',T('Every story happened or was first reported on 18 November 2026. Sources: Reuters, AP, AFP, BBC, Al Jazeera. Original flat-vector illustrations.',40,962,8.4,SANS,INK,box=790),T('18 NOVEMBER 2026',984,962,8.4,BOLD,INK,'end',150),'</svg>']
  worst=max((w/b for _,w,b in LEDGER),default=0); item=max(LEDGER,key=lambda q:q[1]/q[2]);print(f'worst ratio: {worst:.4f} ({item[0]})');assert worst<=1
  result=''.join(o);assert '…' not in result and '...' not in result
  return result
