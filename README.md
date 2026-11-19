@@ -1,6 +1,8 @@
 # Wednesday 18 November 2026
 
-[![make.fun · news-image-20261118](https://make.fun/badge/news-image-20261118.svg)](https://make.fun/bounty/news-image-20261118)
+[![make.fun · news-image-20261118](https://make.fun/badge/news-image-20261118.svg)](https://make.fun/bounty/news-image-20261118?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261118)
+[![rank](https://make.fun/badge/news-image-20261118/AdityaPratama0/news-image-18nov-main/rank.svg)](https://make.fun/bounty/news-image-20261118/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261118)
+[![reward](https://make.fun/badge/news-image-20261118/AdityaPratama0/news-image-18nov-main/reward.svg)](https://make.fun/bounty/news-image-20261118?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261118)
 
 A program-drawn broadsheet front page covering 45 Wednesday stories across seven regions. Its story budget is 13 large illustrated news cards, each with a distinct flat-vector scene, plus 32 ruled briefs. Proportional region tabs, a pinned dot map, numeric ticker, date-check panel, and source line provide the front-page navigation and verification layer.
 
