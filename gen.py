@@ -4,7 +4,7 @@ from collections import Counter
 sys.path.append('/usr/lib/python3/dist-packages')
 from PIL import ImageFont
 SANS='/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'; BOLD='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'; SERIF='/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf'
-PAPER,INK,RED,GREY,WHITE='#f7f3e8','#161616','#8f1d1d','#7d7668','#ffffff'
+PAPER,INK,RED,GREY,WHITE,NAVY='#f7f3e8','#161616','#8f1d1d','#7d7668','#ffffff','#16233a'
 C={'Europe':'#2456a8','Middle East':'#b3352b','Asia':'#c98a12','Americas':'#2f7d4f','Africa':'#7a3f8a','Oceania':'#12807d','Global':'#3f4a5a'}
 def mix(a,b,amount):
  av=tuple(int(a[i:i+2],16) for i in (1,3,5));bv=tuple(int(b[i:i+2],16) for i in (1,3,5))
@@ -71,8 +71,8 @@ def scene(n,x,y,w,h,c,tint):
 def dotmap():
  try:rows=open('/tmp/mask.txt').read().splitlines()
  except OSError:rows=[]
- z=''.join(O(40+xx*2.8,666+yy*1.75,.7,GREY) for yy,row in enumerate(rows[:45]) for xx,ch in enumerate(row[:90]) if ch=='#')
- pins=[(200,683),(238,692),(91,685),(174,673),(211,686),(249,705),(145,690),(224,700),(168,715),(286,726),(152,669),(58,699),(184,677)]
+ z=''.join(O(40+xx*2.8,710+yy*1.75,.7,GREY) for yy,row in enumerate(rows[:45]) for xx,ch in enumerate(row[:90]) if ch=='#')
+ pins=[(200,727),(238,736),(91,729),(174,717),(211,730),(249,749),(145,734),(224,744),(168,759),(286,770),(152,713),(58,743),(184,721)]
  for n,(x,y) in enumerate(pins,1):z+=O(x,y,5.2,RED)+T(n,x,y+2.3,6.2,BOLD,WHITE,'middle',10.4)
  return z
 def tab_widths(order,counts):
@@ -90,26 +90,27 @@ def tab_widths(order,counts):
  widths[-1]+=944-sum(widths)
  return widths
 def svg():
- LEDGER.clear();o=[f'<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">{R(0,0,1024,1024,PAPER)}<path d="M40 12H984M40 34H984" stroke="{INK}" stroke-width=".8"/>',T("THE WORLD'S NEWS IN ONE PICTURE",40,27,10.5,SANS,INK,box=400),T('45 STORIES · 7 REGIONS · 13 ILLUSTRATED · ALL FROM WEDNESDAY',984,27,10.5,BOLD,RED,'end',560)]
+ LEDGER.clear();o=[f'<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">{R(0,0,1024,1024,PAPER)}',R(40,12,944,128,NAVY),T("THE WORLD'S NEWS IN ONE PICTURE",40,40,10.5,SANS,WHITE,box=400,extra='letter-spacing="1"'),T('45 STORIES · 7 REGIONS · 13 ILLUSTRATED · ALL FROM WEDNESDAY',984,40,10.5,BOLD,WHITE,'end',560)]
  # Measured DejaVu Serif Bold at 54px: 927px wide.
- o += [f'<text x="48.5" y="96" font-family="DejaVu Serif" font-weight="700" font-size="54" fill="{INK}">Wednesday 18 November 2026</text>',f'<path d="M40 112H984" stroke="{INK}" stroke-width=".8"/>']
+ o += [f'<text x="48.5" y="100" font-family="DejaVu Serif" font-weight="700" font-size="54" fill="{WHITE}">Wednesday 18 November 2026</text>',f'<path d="M40 116H984" stroke="{WHITE}" stroke-opacity=".3" stroke-width=".8"/>',T('Every story happened, or was first reported, on Wednesday 18 November 2026',40,126,9,SERIF,WHITE,box=944,extra='font-style="italic" fill-opacity=".8"')]
  counts=Counter(a for a,_,_ in CARDS+BRIEFS); order=sorted(C,key=lambda a:(-counts[a],list(C).index(a)));x=40
  widths=tab_widths(order,counts);print('tab widths:', ' '.join(f'{a}={w:.2f}' for a,w in zip(order,widths)))
  for a,w in zip(order,widths):
-  o += [R(x,120,w,28,C[a]),T(f'{a.upper()} {counts[a]}',x+w/2,138,10.5,BOLD,WHITE,'middle',w-14)];x+=w
+  o += [R(x,184,w,28,C[a]),T(f'{a.upper()} {counts[a]}',x+w/2,202,10.5,BOLD,WHITE,'middle',w-14)];x+=w
  ticker=[('55','factories shut'),('141','drones fired at Ukraine'),('37','killed in El Obeid'),('3.6%','UK inflation')]
  assert len(ticker)==4
- gap=24; total=sum(measure(a,BOLD,9.6)+4+measure(b,SANS,9.6) for a,b in ticker)+gap*(len(ticker)-1)
- if total>944:ticker=ticker[:-1];total=sum(measure(a,BOLD,9.6)+4+measure(b,SANS,9.6) for a,b in ticker)+gap*(len(ticker)-1)
+ content=sum(measure(a,BOLD,9.6)+4+measure(b,SANS,9.6) for a,b in ticker)
+ gap=(944-content)/(len(ticker)-1);total=content+gap*(len(ticker)-1)
  assert len(ticker)==4
  assert total<=944
- tx=40
+ o.append(R(40,152,944,26,NAVY));tx=40
  for i,(figure,label) in enumerate(ticker):
   fw=measure(figure,BOLD,9.6);lw=measure(label,SANS,9.6)
-  o += [T(figure,tx,160,9.6,BOLD,RED,box=fw+.1),T(label,tx+fw+4,160,9.6,SANS,INK,box=lw+.1)]
+  o += [T(figure,tx,169,9.6,BOLD,WHITE,box=fw+.1),T(label,tx+fw+4,169,9.6,SANS,WHITE,box=lw+.1)]
   tx+=fw+4+lw
-  if i<len(ticker)-1:o.append(f'<path d="M{tx+gap/2} 151V163" stroke="{GREY}" stroke-width=".6"/>')
- pos=[(32+i*315,180,306,68) for i in range(3)]+[(32+i*189,340,180,62) for i in range(5)]+[(32+i*189,500,180,62) for i in range(5)]
+  if i<len(ticker)-1:
+   o.append(f'<path d="M{tx+gap/2} 157V173" stroke="{WHITE}" stroke-opacity=".4" stroke-width=".6"/>');tx+=gap
+ pos=[(32+i*315,224,306,68) for i in range(3)]+[(32+i*189,383,180,62) for i in range(5)]+[(32+i*189,542,180,62) for i in range(5)]
  for n,((reg,kick,head),(x,y,w,ih),standfirst) in enumerate(zip(CARDS,pos,STANDFIRSTS),1):
   o += [f'<rect x="{x}" y="{y}" width="{w}" height="150" fill="none" stroke="{GREY}" stroke-width=".8"/>',scene(n,x,y,w,ih,WHITE,TINT[reg]),R(x,y+ih,w,14,C[reg]),T(kick,x+5,y+ih+10.5,8.5,BOLD,WHITE,box=w-10)]
   hs=19 if n<4 else 13.5
@@ -122,9 +123,9 @@ def svg():
   assert len(stand_lines)==1
   o.append(T(stand_lines[0],x+8,y+142,8.4,SANS,'#3a3a3a',box=w-16))
   o += [R(x,y,16,16,RED),T(n,x+8,y+11.5,9.5,BOLD,WHITE,'middle',16)]
- o += [T('WHERE IT HAPPENED',40,656,8.5,BOLD,INK,box=300),dotmap(),R(356,660,628,100,WHITE),R(356,660,3,100,RED)]
+ o += [T('WHERE IT HAPPENED',40,700,8.5,BOLD,INK,box=300),dotmap(),R(356,700,628,100,WHITE),R(356,700,3,100,RED)]
  date="DATE CHECK  Left out because first reported before 18 November: Nvidia's $115.8bn quarter, the Prague train crash, Mongolia's president resigning. Every story here happened or was first reported on Wednesday 18 November 2026; contested claims are attributed."
- for j,line in enumerate(wrap(date,BOLD,8.6,607)):o.append(T(line,369,681+j*16,8.6,BOLD if j==0 else SANS,INK,box=607))
+ for j,line in enumerate(wrap(date,BOLD,8.6,607)):o.append(T(line,369,721+j*16,8.6,BOLD if j==0 else SANS,INK,box=607))
  field_counts=Counter(FIELD_TAGS.values());assert sum(field_counts.values())==45
  print('field counts:', ' '.join(f'{field}={field_counts[field]}' for field in FIELDS))
  field_groups=[(field,field_counts[field]) for field in FIELDS]
@@ -135,10 +136,10 @@ def svg():
  for i,(field,count) in enumerate(field_groups):
   spans += [f'<tspan font-weight="700" fill="{RED}">{field}</tspan>',f'<tspan fill="#3a3a3a"> {count}</tspan>']
   if i<len(field_groups)-1:spans.append('<tspan fill="#3a3a3a"> · </tspan>')
- field_strip=f'<text x="984" y="780" font-family="DejaVu Sans" font-size="8" fill="#3a3a3a" text-anchor="end">BY FIELD  {"".join(spans)}</text>'
- o += [T('ALSO ON WEDNESDAY 18 NOVEMBER',40,780,10.5,BOLD,RED,box=500,extra='letter-spacing="1"'),field_strip,f'<path d="M40 788H984" stroke="{INK}" stroke-width=".8"/>']
+ field_strip=f'<text x="984" y="816" font-family="DejaVu Sans" font-size="8" fill="#3a3a3a" text-anchor="end">BY FIELD  {"".join(spans)}</text>'
+ o += [T('ALSO ON WEDNESDAY 18 NOVEMBER',40,816,10.5,BOLD,RED,box=500,extra='letter-spacing="1"'),field_strip,f'<path d="M40 820H984" stroke="{INK}" stroke-width=".8"/>']
  for num,(reg,place,desc) in enumerate(BRIEFS,14):
-  k=num-14;col=k//11;row=k%11;x=40+col*323;y=804+row*15.4;nw=measure(str(num)+' ',BOLD,8);pw=measure(place+' ',BOLD,8);dw=measure(desc,SANS,8)
+  k=num-14;col=k//11;row=k%11;x=40+col*323;y=828+row*12.6;nw=measure(str(num)+' ',BOLD,8);pw=measure(place+' ',BOLD,8);dw=measure(desc,SANS,8)
   if nw+pw+dw>297:
    print(f'brief {num} too wide: {nw+pw+dw:.2f}px: {place} {desc}',file=sys.stderr);raise SystemExit(1)
   o += [T(str(num)+' ',x,y,8,BOLD,RED,box=nw+.1),T(place+' ',x+nw,y,8,BOLD,INK,box=pw+.1),T(desc,x+nw+pw,y,8,SANS,INK,box=dw+.1),f'<path d="M{x} {y+4}H{x+297}" stroke="{GREY}" stroke-opacity=".15" stroke-width=".7"/>']
